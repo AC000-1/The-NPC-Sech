@@ -4,13 +4,170 @@
         <meta charset="UTF-8">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <meta name="viewport" content="user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
         <link rel="icon" href="icon/icon.png" type="image/png">
         <link rel="apple-touch-icon" href="icon/icon.png">
         <link rel="stylesheet" type="text/css" href="fonts/gamefont.css">
         <title>THE NPC Sex - Free to Fuck All, From Villager Girls to the Demon Queen</title>
+        <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: black;
+        }
+
+        /* ── Mobile controls: chỉ hiện trên thiết bị cảm ứng hoặc màn hình nhỏ ── */
+        #mobile-controls {
+            display: none;
+        }
+
+        @media (pointer: coarse), (max-width: 900px) {
+
+            #mobile-controls {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                pointer-events: none;
+                user-select: none;
+            }
+
+            canvas {
+                touch-action: none;
+            }
+
+            /* ── Base button style ── */
+            .ctrl-btn {
+                position: absolute;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.85);
+                font-size: 18px;
+                font-weight: bold;
+                pointer-events: auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                -webkit-tap-highlight-color: transparent;
+                transition: background 0.08s;
+            }
+
+            .ctrl-btn:active {
+                background: rgba(255, 255, 255, 0.35);
+            }
+
+            /* ── D-Pad (trái màn hình) ── */
+            .dpad-btn {
+                width: 58px;
+                height: 58px;
+                font-size: 22px;
+            }
+
+            /* D-Pad arrows */
+            #up    { left: 82px;  bottom: 178px; }
+            #left  { left: 16px;  bottom: 112px; }
+            #down  { left: 82px;  bottom: 112px; }
+            #right { left: 148px; bottom: 112px; }
+
+            /* ── WASD labels nhỏ bên trong D-Pad ── */
+            .dpad-sub {
+                font-size: 9px;
+                opacity: 0.55;
+                display: block;
+                line-height: 1;
+                margin-top: 1px;
+            }
+
+            /* ── Action buttons (phải màn hình) ── */
+            #zBtn {
+                width: 62px;
+                height: 62px;
+                font-size: 15px;
+                right: 90px;
+                bottom: 160px;
+                background: rgba(80, 160, 255, 0.20);
+            }
+
+            #xBtn {
+                width: 62px;
+                height: 62px;
+                font-size: 20px;
+                right: 18px;
+                bottom: 100px;
+                background: rgba(255, 100, 100, 0.20);
+            }
+
+            /* ── Mouse Left / Right (giữa màn hình, trên D-pad) ── */
+            #mlBtn {
+                width: 70px;
+                height: 44px;
+                font-size: 12px;
+                right: 170px;
+                bottom: 60px;
+                background: rgba(255, 220, 80, 0.18);
+            }
+
+            #mrBtn {
+                width: 70px;
+                height: 44px;
+                font-size: 12px;
+                right: 90px;
+                bottom: 60px;
+                background: rgba(255, 160, 40, 0.18);
+            }
+
+            /* ── Fullscreen ── */
+            #fsBtn {
+                width: 46px;
+                height: 46px;
+                font-size: 18px;
+                right: 14px;
+                top: 14px;
+                background: rgba(255,255,255,0.10);
+            }
+        }
+        </style>
     </head>
     <body style="background-color: black">
+
+        <!-- ── Mobile Controls Overlay ── -->
+        <div id="mobile-controls">
+
+            <!-- D-Pad / WASD -->
+            <button class="ctrl-btn dpad-btn" id="up">
+                ↑<span class="dpad-sub">W</span>
+            </button>
+            <button class="ctrl-btn dpad-btn" id="left">
+                ←<span class="dpad-sub">A</span>
+            </button>
+            <button class="ctrl-btn dpad-btn" id="down">
+                ↓<span class="dpad-sub">S</span>
+            </button>
+            <button class="ctrl-btn dpad-btn" id="right">
+                →<span class="dpad-sub">D</span>
+            </button>
+
+            <!-- Confirm / OK -->
+            <button class="ctrl-btn" id="zBtn">OK<br><span style="font-size:10px;opacity:.6">Z</span></button>
+
+            <!-- Cancel / X -->
+            <button class="ctrl-btn" id="xBtn">✕<br><span style="font-size:10px;opacity:.6">X</span></button>
+
+            <!-- Mouse Left Click -->
+            <button class="ctrl-btn" id="mlBtn">🖱️ L</button>
+
+            <!-- Mouse Right Click -->
+            <button class="ctrl-btn" id="mrBtn">🖱️ R</button>
+
+            <!-- Fullscreen -->
+            <button class="ctrl-btn" id="fsBtn">⛶</button>
+
+        </div>
+
+        <!-- ── RPG Maker MV core scripts ── -->
         <script type="text/javascript" src="js/libs/pixi.js"></script>
         <script type="text/javascript" src="js/libs/pixi-tilemap.js"></script>
         <script type="text/javascript" src="js/libs/pixi-picture.js"></script>
@@ -25,5 +182,164 @@
         <script type="text/javascript" src="js/rpg_windows.js"></script>
         <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/main.js"></script>
+
+        <script>
+        /* ════════════════════════════════════════
+           MOBILE CONTROLS — chỉ kích hoạt trên
+           thiết bị cảm ứng / màn hình nhỏ
+        ════════════════════════════════════════ */
+
+        /* ── Helpers: ép Input state của RPG Maker ── */
+        function pressKey(key)   { if (typeof Input !== "undefined" && Input._currentState) Input._currentState[key] = true;  }
+        function releaseKey(key) { if (typeof Input !== "undefined" && Input._currentState) Input._currentState[key] = false; }
+
+        /* ── Bind một nút với một key RPG Maker ── */
+        function bindKey(id, key) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const on  = e => { e.preventDefault(); pressKey(key); };
+            const off = e => { e.preventDefault(); releaseKey(key); };
+            btn.addEventListener("touchstart",  on,  { passive: false });
+            btn.addEventListener("touchend",    off, { passive: false });
+            btn.addEventListener("touchcancel", off, { passive: false });
+            btn.addEventListener("mousedown",   on);
+            btn.addEventListener("mouseup",     off);
+            btn.addEventListener("mouseleave",  off);
+        }
+
+        /* ── D-Pad ↔ WASD (cùng một action) ── */
+        bindKey("up",    "up");
+        bindKey("left",  "left");
+        bindKey("down",  "down");
+        bindKey("right", "right");
+
+        /* ── Action buttons ── */
+        bindKey("zBtn", "ok");
+        bindKey("xBtn", "escape");
+
+        /* ── Mouse Left Click (chuột trái) ──
+           Tìm canvas của RPG Maker và dispatch MouseEvent thật             */
+        function getCanvas() {
+            return document.querySelector("canvas") || null;
+        }
+
+        function fireMouseEvent(type, button) {
+            const canvas = getCanvas();
+            if (!canvas) return;
+            // Lấy tâm canvas làm điểm click
+            const rect = canvas.getBoundingClientRect();
+            const cx = rect.left + rect.width  / 2;
+            const cy = rect.top  + rect.height / 2;
+            const evt = new MouseEvent(type, {
+                bubbles: true, cancelable: true,
+                clientX: cx, clientY: cy,
+                button: button, buttons: button === 0 ? 1 : 2
+            });
+            canvas.dispatchEvent(evt);
+        }
+
+        function bindMouseBtn(id, mouseButton) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const on = e => {
+                e.preventDefault();
+                fireMouseEvent("mousedown", mouseButton);
+            };
+            const off = e => {
+                e.preventDefault();
+                fireMouseEvent("mouseup", mouseButton);
+                // click cho các plugin dùng "click"
+                if (mouseButton === 0) fireMouseEvent("click", 0);
+            };
+            btn.addEventListener("touchstart",  on,  { passive: false });
+            btn.addEventListener("touchend",    off, { passive: false });
+            btn.addEventListener("touchcancel", off, { passive: false });
+            btn.addEventListener("mousedown",   on);
+            btn.addEventListener("mouseup",     off);
+            btn.addEventListener("mouseleave",  off);
+        }
+
+        bindMouseBtn("mlBtn", 0); // Chuột trái
+        bindMouseBtn("mrBtn", 2); // Chuột phải
+
+        /* ── Context menu: tắt chuột phải trên canvas để không bị popup ── */
+        document.addEventListener("contextmenu", e => e.preventDefault());
+
+        /* ════════════════════════════════════════
+           WASD → UP/DOWN/LEFT/RIGHT trên PC
+           Patch vào Input.keyMapper sau khi engine load
+        ════════════════════════════════════════ */
+        function patchWASD() {
+            if (typeof Input === "undefined" || !Input.keyMapper) {
+                setTimeout(patchWASD, 200);
+                return;
+            }
+            Input.keyMapper[87] = "up";    // W
+            Input.keyMapper[65] = "left";  // A
+            Input.keyMapper[83] = "down";  // S
+            Input.keyMapper[68] = "right"; // D
+        }
+        patchWASD();
+
+        /* ════════════════════════════════════════
+           FULLSCREEN
+        ════════════════════════════════════════ */
+        const fsBtn = document.getElementById("fsBtn");
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+                   || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+        const isStandalone = window.navigator.standalone === true
+                          || window.matchMedia("(display-mode: standalone)").matches;
+
+        function iosHideChrome() {
+            document.body.style.height = (window.screen.height + 100) + "px";
+            window.scrollTo(0, 1);
+            setTimeout(() => {
+                document.body.style.height = "100%";
+                window.scrollTo(0, 0);
+            }, 400);
+            fsBtn.textContent = "✕";
+        }
+
+        function enterFullscreen() {
+            const el = document.documentElement;
+            const req = el.requestFullscreen || el.webkitRequestFullscreen
+                     || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (req) req.call(el);
+        }
+
+        function exitFullscreen() {
+            const ex = document.exitFullscreen || document.webkitExitFullscreen
+                    || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (ex) ex.call(document);
+        }
+
+        fsBtn.addEventListener("click", () => {
+            if (isIOS) {
+                if (isStandalone) {
+                    fsBtn.textContent = "✓";
+                    setTimeout(() => { fsBtn.textContent = "⛶"; }, 1500);
+                } else {
+                    iosHideChrome();
+                }
+                return;
+            }
+            const isFs = document.fullscreenElement
+                      || document.webkitFullscreenElement
+                      || document.mozFullScreenElement
+                      || document.msFullscreenElement;
+            isFs ? exitFullscreen() : enterFullscreen();
+        });
+
+        ["fullscreenchange","webkitfullscreenchange","mozfullscreenchange","MSFullscreenChange"]
+            .forEach(evt => document.addEventListener(evt, () => {
+                const isFs = document.fullscreenElement
+                          || document.webkitFullscreenElement
+                          || document.mozFullScreenElement
+                          || document.msFullscreenElement;
+                fsBtn.textContent = isFs ? "✕" : "⛶";
+            }));
+        </script>
     </body>
 </html>
